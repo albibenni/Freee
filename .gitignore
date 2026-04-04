@@ -1,0 +1,13 @@
+# Swift Package Manager & Build
+.build/
+.build_log
+Packages/
+.swiftpm/
+node_modules/
+.gemini/
+# macOS
+.DS_Store
+
+# Application Bundle
+Free.app/
+Free.dmg

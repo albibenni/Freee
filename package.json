@@ -1,0 +1,14 @@
+{
+    "name": "Free",
+    "version": "1.0.0",
+    "author": "Alberto Benatti",
+    "email": "albi.benni8@gmail.com",
+    "scripts": {
+        "prepare": "husky"
+    },
+    "keywords": [],
+    "license": "ISC",
+    "devDependencies": {
+        "husky": "9.1.7"
+    }
+}
