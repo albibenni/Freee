@@ -3,8 +3,32 @@ import Network
 struct LogicConstant {
 
     struct Browsers {
-        static let supportedBrowsers: Set<String> = [
+        static let browserNames: Set<String> = [
             "about", "arc", "chrome", "brave", "edge", "viva", "vivaldi", "opera", "file",
+        ]
+        static let browserSites: Set<String> = [
+            "com.google.Chrome",
+            "com.apple.Safari",
+            "com.brave.Browser",
+            "com.microsoft.edgemac",
+            "company.thebrowser.Browser",
+            "com.operasoftware.Opera",
+            "com.vivaldi.Vivaldi",
+        ]
+        static let newTabTokens: Set<String> = [
+            "new tab",
+            "start page",
+            "startpage",
+            "about:blank",
+            "about:newtab",
+            "chrome://newtab",
+            "brave://newtab",
+            "edge://newtab",
+            "arc://newtab",
+            "vivaldi://newtab",
+            "opera://startpage",
+            "favorites://",
+            "topsites://",
         ]
 
     }
