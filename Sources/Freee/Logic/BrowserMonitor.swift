@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import Synchronization
 
 protocol BrowserAutomator {
     func getActiveUrl(for app: NSRunningApplication) -> String?
@@ -35,7 +36,7 @@ class BrowserMonitor {
 
     private var timer: (any RepeatingTimer)?
     private let timerLock = NSLock()
-    private let redirectLock = NSLock()
+    // private let redirectLock = NSLock()
     private let stateSnapshotProvider: () -> StateSnapshot?
     private let onEvent: (Event) -> Void
     private let server: LocalServer?
@@ -46,7 +47,8 @@ class BrowserMonitor {
     private let bundleIdProvider: (NSRunningApplication) -> String?
     private let nowProvider: () -> Date
     private let monitorInterval: TimeInterval
-    private var lastRedirectTime: [String: Date] = [:]
+    // private var lastRedirectTime: [String: Date] = [:]
+    private let lastRedirectTime = Mutex<[String: Date]>([:])
 
     init(
         stateSnapshotProvider: @escaping () -> StateSnapshot?,
@@ -116,10 +118,7 @@ class BrowserMonitor {
 
         let now = nowProvider()
 
-        // Read lastRedirectTime under lock (background thread, timer can race with stopMonitoring).
-        redirectLock.lock()
-        let lastRedirect = lastRedirectTime[bundleId]
-        redirectLock.unlock()
+        let lastRedirect = lastRedirectTime.withLock { $0[bundleId] }
         if let lastRedirect, now.timeIntervalSince(lastRedirect) < 2.0 { return }
 
         if let currentURL = automator.getActiveUrl(for: frontApp) {
