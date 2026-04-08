@@ -15,7 +15,7 @@ struct LogicConstant {
             "com.operasoftware.Opera",
             "com.vivaldi.Vivaldi",
         ]
-        static let newTabTokens: Set<String> = [
+        static let newTabPrefixes: [String] = [
             "new tab",
             "start page",
             "startpage",

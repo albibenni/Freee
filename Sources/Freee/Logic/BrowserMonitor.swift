@@ -34,9 +34,7 @@ class BrowserMonitor {
         let allowedRules: [String]
     }
 
-    private var timer: (any RepeatingTimer)?
-    private let timerLock = NSLock()
-    // private let redirectLock = NSLock()
+    private let timer = Mutex<(any RepeatingTimer)?>(nil)
     private let stateSnapshotProvider: () -> StateSnapshot?
     private let onEvent: (Event) -> Void
     private let server: LocalServer?
@@ -47,7 +45,6 @@ class BrowserMonitor {
     private let bundleIdProvider: (NSRunningApplication) -> String?
     private let nowProvider: () -> Date
     private let monitorInterval: TimeInterval
-    // private var lastRedirectTime: [String: Date] = [:]
     private let lastRedirectTime = Mutex<[String: Date]>([:])
 
     init(
@@ -128,9 +125,7 @@ class BrowserMonitor {
             if Self.isPrivateNetworkUrl(currentURL) && !snapshot.blockLocalNetworkHosts { return }
 
             if !RuleMatcher.isAllowed(currentURL, rules: snapshot.allowedRules) {
-                redirectLock.lock()
-                lastRedirectTime[bundleId] = now
-                redirectLock.unlock()
+                lastRedirectTime.withLock { $0[bundleId] = now }
                 automator.redirect(app: frontApp, to: "http://localhost:10000")
             }
         }
@@ -142,25 +137,17 @@ class BrowserMonitor {
     }
 
     private func replaceTimer(with newTimer: (any RepeatingTimer)?) {
-        timerLock.lock()
-        let oldTimer = timer
-        timer = newTimer
-        timerLock.unlock()
+        let oldTimer = timer.withLock { t -> (any RepeatingTimer)? in
+            let old = t
+            t = newTimer
+            return old
+        }
         oldTimer?.invalidate()
     }
 
     private static func isNewTabLike(_ rawUrl: String) -> Bool {
         let cleaned = rawUrl.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        if newTabTokens.contains(cleaned) { return true }
-        if cleaned.hasPrefix("chrome://newtab/")
-            || cleaned.hasPrefix("brave://newtab/")
-            || cleaned.hasPrefix("edge://newtab/")
-            || cleaned.hasPrefix("arc://newtab/")
-            || cleaned.hasPrefix("vivaldi://newtab/")
-        {
-            return true
-        }
-        return false
+        return LogicConstant.Browsers.newTabPrefixes.contains(where: { cleaned.hasPrefix($0) })
     }
 
     private static func isDeveloperLocalUrl(_ rawUrl: String) -> Bool {
